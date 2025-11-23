@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mortal Kombat Simple</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+        font-family: Arial;
+    }
+    #game {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        background: url('bg.png') center/cover no-repeat;
+    }
+
+    .fighter {
+        width: 150px;
+        height: 200px;
+        position: absolute;
+        bottom: 0;
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
+
+    #player {
+        left: 150px;
+        background-image: url('player_idle.png');
+    }
+
+    #enemy {
+        right: 150px;
+        transform: scaleX(-1);
+        background-image: url('enemy_idle.png');
+    }
+
+    .hpBar {
+        position: absolute;
+        top: 20px;
+        height: 25px;
+        width: 40%;
+        background: red;
+        border: 3px solid white;
+    }
+
+    #playerHp { left: 20px; }
+    #enemyHp { right: 20px; }
+</style>
+</head>
+<body>
+
+<div id="game">
+    <div id="player" class="fighter"></div>
+    <div id="enemy" class="fighter"></div>
+
+    <div id="playerHp" class="hpBar"></div>
+    <div id="enemyHp" class="hpBar"></div>
+</div>
+
+<script>
+    const player = {
+        el: document.getElementById("player"),
+        x: 150,
+        hp: 100,
+        attackRange: 120,
+        speed: 10,
+        direction: 1
+    };
+
+    const enemy = {
+        el: document.getElementById("enemy"),
+        x: window.innerWidth - 300,
+        hp: 100,
+        direction: -1
+    };
+
+    const keys = {};
+
+    document.addEventListener("keydown", e => keys[e.key] = true);
+    document.addEventListener("keyup", e => keys[e.key] = false);
+
+    function update() {
+        // Movement
+        if (keys["a"]) player.x -= player.speed;
+        if (keys["d"]) player.x += player.speed;
+
+        // Jump (visual only)
+        if (keys["w"]) player.el.style.bottom = "50px";
+        else player.el.style.bottom = "0";
+
+        // Attack
+        if (keys[" "]) attack();
+
+        // Lock inside screen
+        player.x = Math.max(0, Math.min(window.innerWidth - 200, player.x));
+
+        // Apply positions
+        player.el.style.left = player.x + "px";
+        enemy.el.style.left = enemy.x + "px";
+
+        requestAnimationFrame(update);
+    }
+    update();
+
+    function attack() {
+        player.el.style.backgroundImage = "url('player_punch.png')";
+        setTimeout(() => player.el.style.backgroundImage = "url('player_idle.png')", 200);
+
+        const distance = Math.abs(player.x - enemy.x);
+        if (distance < player.attackRange) {
+            enemy.hp -= 10;
+            updateHp();
+            enemyHitAnimation();
+        }
+    }
+
+    function enemyHitAnimation() {
+        enemy.el.style.backgroundImage = "url('enemy_hit.png')";
+        setTimeout(() => enemy.el.style.backgroundImage = "url('enemy_idle.png')", 200);
+
+        if (enemy.hp <= 0) {
+            enemy.el.style.backgroundImage = "url('enemy_ko.png')";
+            setTimeout(() => alert("You Win!"), 300);
+        }
+    }
+
+    function updateHp() {
+        document.getElementById("enemyHp").style.width = enemy.hp + "%";
+    }
+</script>
+
+</body>
+</html>
